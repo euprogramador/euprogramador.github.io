@@ -30,7 +30,7 @@ openssl x509 -in certs/ca.crt -noout -text
 
 Pronto!, neste ponto temos uma CA funcionando. agora poderemos gerar os certificados dos servidores e dos clientes.
 
-##Criando um certificado para um Servidor
+## Criando um certificado para um Servidor
 
 Opcional: Se você quiser que o certificado valide também os IPs além dos hostnames exporte uma variável SAN.
 
@@ -42,7 +42,7 @@ export SAN="IP:127.0.0.1, IP:192.168.0.1"
 Lembrete: se você utilizar um balanceador de carga na frente do seu servidor, o ip do balanceador também tem de ser adicionado na variável SAN.
 
 
-###Gerando o certificado do servidor
+### Gerando o certificado do servidor
 
 ```
 # cria o pedido de certificado e gera uma chave. 
@@ -64,7 +64,7 @@ Pronto!, neste ponto temos um certificado gerado para o servidor srv1.empresa.co
 
 O procedimento para geração dos certificados clientes é o mesmo do servidor.
 
-### Criando um certificado para um cliente
+### Gerando um certificado para um cliente
 
 Opcional: Se você quiser que o certificado valide também os IPs exporte uma variável SAN, no caso de um certificado cliente, geralmente o SAN não precisa ser configurado
 
@@ -79,8 +79,8 @@ caso não deseje validar desconfigure o registro do SAN:
 unset SAN
 ```
 
-###Gerando os certificados
-
+### Gerando os certificados
+ 
 ```
 # cria o pedido de certificado e gera uma chave. 
 # no input Common name coloque o nome que deseja para identificar o usuário que está acessando o servidor: cliente1
@@ -92,33 +92,40 @@ openssl ca -config openssl.cnf -extensions client  -keyfile private/ca.key -cert
 ```
 
 
-##Testando o servidor:
+## Testando os certificados:
 ```
-# execute isso, cria um servidor node js https usando os certificados gerados
+# o comando abaixo cria um servidor nodejs https usando os certificados gerados
+
 node -e "var https = require('https');var fs = require('fs');var options = {key: fs.readFileSync('$(pwd)/private/srv1.empresa.com.br.key'),cert: fs.readFileSync('$(pwd)/certs/srv1.empresa.com.br.crt')};https.createServer(options, function (req, res) {res.writeHead(200);res.end('OK tudo funcionando\n');}).listen(4443);"
 
-# em outro terminal na mesma pasta em que a CA está execute isso
+# em outro terminal na mesma pasta em que a CA foi criada está execute isso
+
 curl -v -s -k --cacert $(pwd)/certs/ca.crt https://127.0.0.1:4443
 ```
 
-Você verá "OK tudo funcionando"
+Você verá:  *OK tudo funcionando*
 
-Pronto!, o certificado SSL para o servidor está funcionando, agora vamos testar o certificado ssl para o cliente usando um servidor que requer autenticação via certificado.
+Pronto!, o certificado SSL para o servidor está funcionando para o servidor
+
+Agora vamos testar o certificado ssl para o cliente usando um servidor que requer autenticação via certificado.
 
 ```
 # execute o servidor que requer autenticação cliente via certificado
+
 node -e "var https = require('https');var fs = require('fs');var options = {rejectUnauthorized: false, requestCert:true, ca: fs.readFileSync('$(pwd)/certs/ca.crt'),key: fs.readFileSync('$(pwd)/private/srv1.empresa.com.br.key'),cert: fs.readFileSync('$(pwd)/certs/srv1.empresa.com.br.crt')};https.createServer(options, function (req, res) {if (req.client.authorized) {res.writeHead(200);res.end('OK tudo funcionando\n');} else {res.writeHead(401);res.end('negado');}}).listen(4443);"
 ```
 Executando com erro sem o certificado:
 
 ```
 # validando se está realmente funcionando 
+
 curl -v -s -k --cacert $(pwd)/certs/ca.crt https://127.0.0.1:4443
 ```
 
-Você verá "negado"
+Você verá: *negado*
 
-Executando com sucesso, passando o certificado:
+Executando com sucesso, passando o certificado cliente:
+
 
 ```
 # validando se está realmente funcionando 
@@ -129,5 +136,3 @@ curl -v -s -k --cacert $(pwd)/certs/ca.crt --key $(pwd)/private/cliente1.key --c
 Com isso temos uma CA e podemos emitir certificados, isso é útil quando queremos uma proteção para um servidor mas sem depender de uma CA externa.
 
 Até a próxima.
- 
-
