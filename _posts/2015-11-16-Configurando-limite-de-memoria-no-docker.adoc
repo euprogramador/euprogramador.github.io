@@ -1,21 +1,24 @@
 = Configurando limite de memória no docker
 :published_at: 2015-11-16
-
+:hp-tags: Docker
 
 Docker permite efetuar o limite de memoria usando a flag -m, exemplo de limite de um container a 1g:
 
 ```
-docker run --rm -m 1g hello-world
+# docker run --rm -m 1g hello-world
 ```
 
 
 entretanto quando rodamos recebemos o seguinte aviso: 
 
+```
 WARNING: Your kernel does not support memory limit capabilities. Limitation discarded.
+```
 
 Isso está nos informando que o limite de memória não foi ativado, como configurar o limite então? 
 
 Estou rodando um debian jessie, para configurar o limite de memória no docker adicione no arquivo /etc/default/grub a seguinte linha:
+
 ```
 GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1"
 ```
