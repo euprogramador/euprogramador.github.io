@@ -1,5 +1,6 @@
 = Trabalhando com CA e certificados Auto-assinados
-
+:published_at: 2015-12-10
+:hp-tags: SSL, Certificados Digitais, Segurança
 
 Trabalhar com certificados, geralmente tem suas dores de cabeça, entender a infraestrutura PKI pode ser problemático para desenvolvedores que não estão acostumados a trabalhar com certificados, aqui teremos um roteiro para criar a nossa própria CA e gerar alguns certificados, isso pode ser bastante útil quando queremos criar sistemas que tenham um alto nível de segurança. Ao final desse tutorial esperamos gerar uma CA, e os certificados de servidores e clientes que podem ser usados para controlar o acesso a recursos em um servidor.
 
