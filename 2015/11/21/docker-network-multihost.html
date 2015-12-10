@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <title>docker network multihost</title>
+    <meta name="description" content="" />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="shortcut icon" href="//euprogramador.github.io/themes/Casper/favicon.ico">
+
+    <link rel="stylesheet" type="text/css" href="//euprogramador.github.io/themes/Casper/assets/css/screen.css?v=1.0.0" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400" />
+
+    <link rel="canonical" href="https://euprogramador.github.io/2015/11/21/docker-network-multihost.html" />
+    
+    <meta property="og:site_name" content="DevOps" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="docker network multihost" />
+    <meta property="og:description" content="Docker é uma ferramenta sensacional, entretanto se usamos apenas em um computador, ele não é muito prático, portanto para uso em um ambiente empresarial, é necessário conectar diversos docker hosts com uma rede que permita a comunicação entre os containeres..." />
+    <meta property="og:url" content="https://euprogramador.github.io/2015/11/21/docker-network-multihost.html" />
+    <meta property="article:published_time" content="2015-11-21T02:00:00.000Z" />
+    <meta property="article:modified_time" content="2015-12-10T15:16:12.597Z" />
+    <meta property="article:tag" content="Docker" />
+    
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="docker network multihost" />
+    <meta name="twitter:description" content="Docker é uma ferramenta sensacional, entretanto se usamos apenas em um computador, ele não é muito prático, portanto para uso em um ambiente empresarial, é necessário conectar diversos docker hosts com uma rede que permita a comunicação entre os containeres..." />
+    <meta name="twitter:url" content="https://euprogramador.github.io/2015/11/21/docker-network-multihost.html" />
+    
+    <script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "Article",
+    "publisher": "DevOps",
+    "author": {
+        "@type": "Person",
+        "name": "Carlos Alberto (Euprogramador)",
+        "image": "https://avatars.githubusercontent.com/u/264692?v=3",
+        "url": "undefined/author/undefined",
+        "sameAs": null
+    },
+    "headline": "docker network multihost",
+    "url": "https://euprogramador.github.io/2015/11/21/docker-network-multihost.html",
+    "datePublished": "2015-11-21T02:00:00.000Z",
+    "dateModified": "2015-12-10T15:16:12.597Z",
+    "keywords": "Docker",
+    "description": "Docker é uma ferramenta sensacional, entretanto se usamos apenas em um computador, ele não é muito prático, portanto para uso em um ambiente empresarial, é necessário conectar diversos docker hosts com uma rede que permita a comunicação entre os containeres..."
+}
+    </script>
+
+    <meta name="generator" content="Ghost ?" />
+    <link rel="alternate" type="application/rss+xml" title="DevOps" href="https://euprogramador.github.io/rss" />
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/default.min.css">
+</head>
+<body class="post-template tag-Docker">
+
+    
+
+
+<header class="main-header post-head no-cover">
+    <nav class="main-nav  clearfix">
+        <a class="back-button icon-arrow-left" href="https://euprogramador.github.io">Home</a>
+        <!-- <a class="subscribe-button icon-feed" href="https://euprogramador.github.io/rss/">Subscribe</a> -->
+    </nav>
+</header>
+
+<main class="content" role="main">
+
+    <article class="post tag-Docker">
+
+        <header class="post-header">
+            <h1 class="post-title">docker network multihost</h1>
+            <section class="post-meta">
+                <time class="post-date" datetime="2015-11-21">21 November 2015</time>  on <a href="https://euprogramador.github.io/tag/Docker">Docker</a>
+            </section>
+        </header>
+
+        <section class="post-content">
+            <div class="paragraph">
+<p>Docker é uma ferramenta sensacional, entretanto se usamos apenas em um computador, ele não é muito prático, portanto para uso em um ambiente empresarial, é necessário conectar diversos docker hosts com uma rede que permita a comunicação entre os containeres dispostos em hosts diferentes.</p>
+</div>
+<div class="paragraph">
+<p>Entretanto rede em docker sempre foi um problema, conectar hosts diferentes, efetuar restrições, entre outros, sempre foi complicado no docker.</p>
+</div>
+<div class="paragraph">
+<p>A versão 1.9.0 do docker veio então com uma funcionalidade interessante que é a possibilidade de segregação de rede.</p>
+</div>
+<div class="paragraph">
+<p>O funcionamento é simples, veja só:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>docker network ls # lista as redes existentes no docker
+docker network create rede-isolada # cria uma rede chamada "rede-isolada"
+docker network rm rede-isolada # remove a rede isolada</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Tem outros comandos, entretanto estes comandos já são suficientes para testar.</p>
+</div>
+<div class="paragraph">
+<p>Quando for rodar o container, basta colocar ele em uma rede criada.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>docker run --net=rede-isolada -it ubuntu # cria um container que roda em uma rede isolada</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Isso são as funcionalidades básicas para isolamento de rede, entretanto para utilizar em um ambiente de produção precisamos conectar diversos hosts.</p>
+</div>
+<div class="paragraph">
+<p>Não mostraremos como configurar uma rede multi host, isso fica para a próxima.</p>
+</div>
+<div class="paragraph">
+<p>Para a rede funcionar, é não ter que configurar um bridge no sistema contectando diversos hosts, podemos usar uma rede sobreposta (overlay), uma rede overlay é uma rede encapsulada em outra rede, de forma que os containeres, possam se comunicar.</p>
+</div>
+<div class="paragraph">
+<p>existem diversos produtos que permitem efetuar a comunicação entre os containeres, como:
+Flannel
+Weave
+Swarm</p>
+</div>
+<div class="paragraph">
+<p>Uma rede sobreposta pode adicionar um overide inaceitável quando performance é a prioridade.</p>
+</div>
+<div class="paragraph">
+<p>Vamos ao teste:</p>
+</div>
+<div class="paragraph">
+<p>Temos 2 servidores linux com uma rede gigabit entre eles, e com o docker instalado, usamos a ferramenta iperf que analisa o trafego da rede, e obtive os seguintes resultados:</p>
+</div>
+<div class="paragraph">
+<p>Teste 1, comunicação nativa, host to host:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>172.19.100.121 - rodando iperf -c 172.19.100.121
+172.19.100.122 - rodando iperf -s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>resultado:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>------------------------------------------------------------
+Client connecting to 172.19.100.122, TCP port 5001
+TCP window size: 85.0 KByte (default)
+------------------------------------------------------------
+[  3] local 172.19.100.121 port 49879 connected with 172.19.100.122 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.0 sec  2.48 GBytes  2.13 Gbits/sec</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>o resultado foi muito bom para uma conexão host to host, 2.13 gbits/sec.</p>
+</div>
+<div class="paragraph">
+<p>Teste 2, usando uma rede sobreposta weave container a container em hosts diferentes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>10.32.0.1 - iperf -s
+10.40.0.0 - iperf -c 10.32.0.1</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>Client connecting to b1, TCP port 5001
+TCP window size: 45.0 KByte (default)
+------------------------------------------------------------
+[  3] local 10.40.0.0 port 60385 connected with 10.32.0.1 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.0 sec   581 MBytes   487 Mbits/sec</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>O resultado foi muito ruim, 487 Mbits/sec.
+Para um ambiente de produção ter uma rede gigabit não valeria de nada se usar weave.</p>
+</div>
+<div class="paragraph">
+<p>Entretanto achei um projeto excelente, chamado Calico, ele não utiliza uma rede sobreposta, mas efetua uma comunicação entre docker multihost com containeres.</p>
+</div>
+<div class="paragraph">
+<p>Teste3, usando uma rede Calico:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>10.0.0.6 - iperf -s
+10.0.0.7 - iperf -c 10.0.0.6</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>Client connecting to 10.0.0.6, TCP port 5001
+TCP window size: 85.0 KByte (default)
+------------------------------------------------------------
+[  3] local 10.0.0.7 port 57583 connected with 10.0.0.6 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.0 sec  2.33 GBytes  2.00 Gbits/sec</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>O teste foi excelente, o resultado, foi que obtivemos um resultado, tão bom quanto uma rede gigabit nativa.</p>
+</div>
+<div class="paragraph">
+<p>Resultado, use calico quando precisa ligar containeres multi-host.</p>
+</div>
+        </section>
+
+        <footer class="post-footer">
+
+
+            <figure class="author-image">
+                <a class="img" href="" style="background-image: url(https://avatars.githubusercontent.com/u/264692?v=3)"><span class="hidden">Carlos Alberto (Euprogramador)'s Picture</span></a>
+            </figure>
+
+            <section class="author">
+                <h4><a href="">Carlos Alberto (Euprogramador)</a></h4>
+
+                    <p>Read <a href="">more posts</a> by this author.</p>
+                <div class="author-meta">
+                    <span class="author-location icon-location">Brasilia</span>
+                    
+                </div>
+            </section>
+
+
+            <section class="share">
+                <h4>Share this post</h4>
+                <a class="icon-twitter" href="https://twitter.com/share?text=docker%20network%20multihost&amp;url=https://euprogramador.github.io/2015/11/21/docker-network-multihost.html"
+                    onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                    <span class="hidden">Twitter</span>
+                </a>
+                <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=https://euprogramador.github.io/2015/11/21/docker-network-multihost.html"
+                    onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+                    <span class="hidden">Facebook</span>
+                </a>
+                <a class="icon-google-plus" href="https://plus.google.com/share?url=https://euprogramador.github.io/2015/11/21/docker-network-multihost.html"
+                   onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+                    <span class="hidden">Google+</span>
+                </a>
+            </section>
+
+        </footer>
+
+
+        <section class="post-comments">
+          <div id="disqus_thread"></div>
+          <script type="text/javascript">
+          var disqus_shortname = 'euprogramador'; // required: replace example with your forum shortname
+          /* * * DON'T EDIT BELOW THIS LINE * * */
+          (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+          })();
+          </script>
+          <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+        </section>
+
+
+    </article>
+
+</main>
+
+
+
+    <footer class="site-footer clearfix">
+        <section class="copyright"><a href="https://euprogramador.github.io">DevOps</a> &copy; 2015</section>
+        <section class="poweredby">Proudly published with <a href="http://hubpress.io">HubPress</a></section>
+    </footer>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js?v="></script> <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.min.js?v="></script> <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js?v="></script> 
+      <script type="text/javascript">
+        jQuery( document ).ready(function() {
+          // change date with ago
+          jQuery('ago.ago').each(function(){
+            var element = jQuery(this).parent();
+            element.html( moment(element.text()).fromNow());
+          });
+        });
+
+        hljs.initHighlightingOnLoad();      
+      </script>
+
+    <script type="text/javascript" src="//euprogramador.github.io/themes/Casper/assets/js/jquery.fitvids.js?v=1.0.0"></script>
+    <script type="text/javascript" src="//euprogramador.github.io/themes/Casper/assets/js/index.js?v=1.0.0"></script>
+
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-70195106-1', 'auto');
+    ga('send', 'pageview');
+
+    </script>
+</body>
+</html>
