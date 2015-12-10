@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <title>Trabalhando com CA e certificados Auto-assinados</title>
+    <meta name="description" content="" />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="shortcut icon" href="//euprogramador.github.io/themes/Casper/favicon.ico">
+
+    <link rel="stylesheet" type="text/css" href="//euprogramador.github.io/themes/Casper/assets/css/screen.css?v=1.0.0" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400" />
+
+    <link rel="canonical" href="https://euprogramador.github.io/2015/12/10/Trabalhando-com-CA-e-certificados-Auto-assinados.html" />
+    
+    <meta property="og:site_name" content="DevOps" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="Trabalhando com CA e certificados Auto-assinados" />
+    <meta property="og:description" content="Trabalhar com certificados, geralmente tem suas dores de cabeça, entender a infraestrutura PKI pode ser problemático para desenvolvedores que não estão acostumados a trabalhar com certificados, aqui teremos um roteiro para criar a nossa própria CA e gerar alguns certificados,..." />
+    <meta property="og:url" content="https://euprogramador.github.io/2015/12/10/Trabalhando-com-CA-e-certificados-Auto-assinados.html" />
+    <meta property="article:published_time" content="2015-12-10T02:00:00.000Z" />
+    <meta property="article:modified_time" content="2015-12-10T15:26:42.102Z" />
+    <meta property="article:tag" content="SSL" />
+    <meta property="article:tag" content="Certificados Digitais" />
+    <meta property="article:tag" content="Segurança" />
+    
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Trabalhando com CA e certificados Auto-assinados" />
+    <meta name="twitter:description" content="Trabalhar com certificados, geralmente tem suas dores de cabeça, entender a infraestrutura PKI pode ser problemático para desenvolvedores que não estão acostumados a trabalhar com certificados, aqui teremos um roteiro para criar a nossa própria CA e gerar alguns certificados,..." />
+    <meta name="twitter:url" content="https://euprogramador.github.io/2015/12/10/Trabalhando-com-CA-e-certificados-Auto-assinados.html" />
+    
+    <script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "Article",
+    "publisher": "DevOps",
+    "author": {
+        "@type": "Person",
+        "name": "Carlos Alberto (Euprogramador)",
+        "image": "https://avatars.githubusercontent.com/u/264692?v=3",
+        "url": "undefined/author/undefined",
+        "sameAs": null
+    },
+    "headline": "Trabalhando com CA e certificados Auto-assinados",
+    "url": "https://euprogramador.github.io/2015/12/10/Trabalhando-com-CA-e-certificados-Auto-assinados.html",
+    "datePublished": "2015-12-10T02:00:00.000Z",
+    "dateModified": "2015-12-10T15:26:42.102Z",
+    "keywords": "SSL,  Certificados Digitais,  Segurança",
+    "description": "Trabalhar com certificados, geralmente tem suas dores de cabeça, entender a infraestrutura PKI pode ser problemático para desenvolvedores que não estão acostumados a trabalhar com certificados, aqui teremos um roteiro para criar a nossa própria CA e gerar alguns certificados,..."
+}
+    </script>
+
+    <meta name="generator" content="Ghost ?" />
+    <link rel="alternate" type="application/rss+xml" title="DevOps" href="https://euprogramador.github.io/rss" />
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/default.min.css">
+</head>
+<body class="post-template tag-SSL tag-Certificados-Digitais tag-Seguranca">
+
+    
+
+
+<header class="main-header post-head no-cover">
+    <nav class="main-nav  clearfix">
+        <a class="back-button icon-arrow-left" href="https://euprogramador.github.io">Home</a>
+        <!-- <a class="subscribe-button icon-feed" href="https://euprogramador.github.io/rss/">Subscribe</a> -->
+    </nav>
+</header>
+
+<main class="content" role="main">
+
+    <article class="post tag-SSL tag-Certificados-Digitais tag-Seguranca">
+
+        <header class="post-header">
+            <h1 class="post-title">Trabalhando com CA e certificados Auto-assinados</h1>
+            <section class="post-meta">
+                <time class="post-date" datetime="2015-12-10">10 December 2015</time>  on <a href="https://euprogramador.github.io/tag/SSL">SSL</a>, <a href="https://euprogramador.github.io/tag/Certificados-Digitais"> Certificados Digitais</a>, <a href="https://euprogramador.github.io/tag/Seguranca"> Segurança</a>
+            </section>
+        </header>
+
+        <section class="post-content">
+            <div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Trabalhar com certificados, geralmente tem suas dores de cabeça, entender a infraestrutura PKI pode ser problemático para desenvolvedores que não estão acostumados a trabalhar com certificados, aqui teremos um roteiro para criar a nossa própria CA e gerar alguns certificados, isso pode ser bastante útil quando queremos criar sistemas que tenham um alto nível de segurança. Ao final desse tutorial esperamos gerar uma CA, e os certificados de servidores e clientes que podem ser usados para controlar o acesso a recursos em um servidor.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_gerando_uma_ca">Gerando uma CA</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>O primeiro Passo para gerar uma CA (Autoridade Certificadora) é executar os seguintes passos:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code># cria os diretórios que serão usados para gerar os certificados
+mkdir CA
+cd CA
+mkdir private certs newcerts crl
+# baixa o CNF default para os certificados e gera o número de série
+wget https://gist.githubusercontent.com/euprogramador/273717c63060f46d3fb0/raw/7125fd64d77f8e9f63b30600026d11dc7428351b/openssl.cnf
+touch index.txt
+echo '01' &gt; serial
+
+
+# cria o certificado da CA e a chave da CA.
+# será solicitado um input com a senha para a chave da ca
+# será solicitado um input para que seja informado os dados do certificado, para o Common Name (FQDN), pode ser por exemplo ca.empresa.com.br
+openssl req -config openssl.cnf -new -x509 -extensions v3_ca -keyout private/ca.key -out certs/ca.crt
+
+# verificando o certificado criado
+openssl x509 -in certs/ca.crt -noout -text</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Pronto!, neste ponto temos uma CA funcionando. agora poderemos gerar os certificados dos servidores e dos clientes.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_criando_um_certificado_para_um_servidor">Criando um certificado para um Servidor</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Opcional: Se você quiser que o certificado valide também os IPs além dos hostnames exporte uma variável SAN.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>export SAN="IP:127.0.0.1, IP:192.168.0.1"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Lembrete: se você utilizar um balanceador de carga na frente do seu servidor, o ip do balanceador também tem de ser adicionado na variável SAN.</p>
+</div>
+<div class="sect2">
+<h3 id="_gerando_o_certificado_do_servidor">Gerando o certificado do servidor</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code># cria o pedido de certificado e gera uma chave.
+# será solicitado o preenchimento das informações do certificado para o Common Name (FQDN) coloque nome do hostname do servidor srv1.empresa.com.br
+openssl req -config openssl.cnf -new -nodes -keyout private/srv1.empresa.com.br.key -out srv1.empresa.com.br.csr
+
+# assine o pedido e gera o certificado usando a CA.
+# informe a senha da CA quando solicitado e confirme a assinatura do certificado
+openssl ca -config openssl.cnf -extensions server -keyfile private/ca.key  -cert certs/ca.crt -out certs/srv1.empresa.com.br.crt -infiles srv1.empresa.com.br.csr
+
+# valide o certificado gerado
+openssl x509 -in certs/srv1.empresa.com.br.crt -noout -text</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Pronto!, neste ponto temos um certificado gerado para o servidor srv1.empresa.com.br</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_criando_certificado_cliente">Criando certificado cliente</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>O procedimento para geração dos certificados clientes é o mesmo do servidor.</p>
+</div>
+<div class="sect2">
+<h3 id="_gerando_um_certificado_para_um_cliente">Gerando um certificado para um cliente</h3>
+<div class="paragraph">
+<p>Opcional: Se você quiser que o certificado valide também os IPs exporte uma variável SAN, no caso de um certificado cliente, geralmente o SAN não precisa ser configurado</p>
+</div>
+<div class="paragraph">
+<p>caso deseje validar o ip que efetuou a solicitação:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>export SAN="IP:127.0.0.1, IP:192.168.0.1"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>caso não deseje validar desconfigure o registro do SAN:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>unset SAN</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_gerando_os_certificados">Gerando os certificados</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code># cria o pedido de certificado e gera uma chave.
+# no input Common name coloque o nome que deseja para identificar o usuário que está acessando o servidor: cliente1
+openssl req -config openssl.cnf -new -nodes -keyout private/cliente1.key -out cliente1.csr
+
+# assina o pedido e gera o certificado usando a CA.
+# informe a senha da CA quando solicitado e confirme a assinatura do certificado
+openssl ca -config openssl.cnf -extensions client  -keyfile private/ca.key -cert certs/ca.crt -out certs/cliente1.crt -infiles cliente1.csr</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_testando_os_certificados">Testando os certificados:</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code># o comando abaixo cria um servidor nodejs https usando os certificados gerados
+
+node -e "var https = require('https');var fs = require('fs');var options = {key: fs.readFileSync('$(pwd)/private/srv1.empresa.com.br.key'),cert: fs.readFileSync('$(pwd)/certs/srv1.empresa.com.br.crt')};https.createServer(options, function (req, res) {res.writeHead(200);res.end('OK tudo funcionando\n');}).listen(4443);"
+
+# em outro terminal na mesma pasta em que a CA foi criada está execute isso
+
+curl -v -s -k --cacert $(pwd)/certs/ca.crt https://127.0.0.1:4443</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Você verá:  <strong>OK tudo funcionando</strong></p>
+</div>
+<div class="paragraph">
+<p>Pronto!, o certificado SSL para o servidor está funcionando para o servidor</p>
+</div>
+<div class="paragraph">
+<p>Agora vamos testar o certificado ssl para o cliente usando um servidor que requer autenticação via certificado.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code># execute o servidor que requer autenticação cliente via certificado
+
+node -e "var https = require('https');var fs = require('fs');var options = {rejectUnauthorized: false, requestCert:true, ca: fs.readFileSync('$(pwd)/certs/ca.crt'),key: fs.readFileSync('$(pwd)/private/srv1.empresa.com.br.key'),cert: fs.readFileSync('$(pwd)/certs/srv1.empresa.com.br.crt')};https.createServer(options, function (req, res) {if (req.client.authorized) {res.writeHead(200);res.end('OK tudo funcionando\n');} else {res.writeHead(401);res.end('negado');}}).listen(4443);"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Executando com erro sem o certificado:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code># validando se está realmente funcionando
+
+curl -v -s -k --cacert $(pwd)/certs/ca.crt https://127.0.0.1:4443</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Você verá: <strong>negado</strong></p>
+</div>
+<div class="paragraph">
+<p>Executando com sucesso, passando o certificado cliente:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code># validando se está realmente funcionando
+curl -v -s -k --cacert $(pwd)/certs/ca.crt --key $(pwd)/private/cliente1.key --cert $(pwd)/certs/cliente1.crt  https://127.0.0.1:4443</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Com isso temos uma CA e podemos emitir certificados, isso é útil quando queremos uma proteção para um servidor mas sem depender de uma CA externa.</p>
+</div>
+<div class="paragraph">
+<p>Até a próxima.</p>
+</div>
+</div>
+</div>
+        </section>
+
+        <footer class="post-footer">
+
+
+            <figure class="author-image">
+                <a class="img" href="" style="background-image: url(https://avatars.githubusercontent.com/u/264692?v=3)"><span class="hidden">Carlos Alberto (Euprogramador)'s Picture</span></a>
+            </figure>
+
+            <section class="author">
+                <h4><a href="">Carlos Alberto (Euprogramador)</a></h4>
+
+                    <p>Read <a href="">more posts</a> by this author.</p>
+                <div class="author-meta">
+                    <span class="author-location icon-location">Brasilia</span>
+                    
+                </div>
+            </section>
+
+
+            <section class="share">
+                <h4>Share this post</h4>
+                <a class="icon-twitter" href="https://twitter.com/share?text=Trabalhando%20com%20CA%20e%20certificados%20Auto-assinados&amp;url=https://euprogramador.github.io/2015/12/10/Trabalhando-com-CA-e-certificados-Auto-assinados.html"
+                    onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                    <span class="hidden">Twitter</span>
+                </a>
+                <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=https://euprogramador.github.io/2015/12/10/Trabalhando-com-CA-e-certificados-Auto-assinados.html"
+                    onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+                    <span class="hidden">Facebook</span>
+                </a>
+                <a class="icon-google-plus" href="https://plus.google.com/share?url=https://euprogramador.github.io/2015/12/10/Trabalhando-com-CA-e-certificados-Auto-assinados.html"
+                   onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+                    <span class="hidden">Google+</span>
+                </a>
+            </section>
+
+        </footer>
+
+
+        <section class="post-comments">
+          <div id="disqus_thread"></div>
+          <script type="text/javascript">
+          var disqus_shortname = 'euprogramador'; // required: replace example with your forum shortname
+          /* * * DON'T EDIT BELOW THIS LINE * * */
+          (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+          })();
+          </script>
+          <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+        </section>
+
+
+    </article>
+
+</main>
+
+
+
+    <footer class="site-footer clearfix">
+        <section class="copyright"><a href="https://euprogramador.github.io">DevOps</a> &copy; 2015</section>
+        <section class="poweredby">Proudly published with <a href="http://hubpress.io">HubPress</a></section>
+    </footer>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js?v="></script> <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.min.js?v="></script> <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js?v="></script> 
+      <script type="text/javascript">
+        jQuery( document ).ready(function() {
+          // change date with ago
+          jQuery('ago.ago').each(function(){
+            var element = jQuery(this).parent();
+            element.html( moment(element.text()).fromNow());
+          });
+        });
+
+        hljs.initHighlightingOnLoad();      
+      </script>
+
+    <script type="text/javascript" src="//euprogramador.github.io/themes/Casper/assets/js/jquery.fitvids.js?v=1.0.0"></script>
+    <script type="text/javascript" src="//euprogramador.github.io/themes/Casper/assets/js/index.js?v=1.0.0"></script>
+
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-70195106-1', 'auto');
+    ga('send', 'pageview');
+
+    </script>
+</body>
+</html>
