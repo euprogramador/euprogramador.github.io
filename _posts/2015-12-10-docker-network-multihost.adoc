@@ -1,0 +1,96 @@
+= docker network multihost
+
+Docker é uma ferramenta sensacional, entretanto se usamos apenas em um computador, ele não é muito prático, portanto para uso em um ambiente empresarial, é necessário conectar diversos docker hosts com uma rede que permita a comunicação entre os containeres dispostos em hosts diferentes.
+
+Entretanto rede em docker sempre foi um problema, conectar hosts diferentes, efetuar restrições, entre outros, sempre foi complicado no docker.
+
+A versão 1.9.0 do docker veio então com uma funcionalidade interessante que é a possibilidade de segregação de rede.
+
+O funcionamento é simples, veja só:
+```
+docker network ls # lista as redes existentes no docker
+docker network create rede-isolada # cria uma rede chamada "rede-isolada"
+docker network rm rede-isolada # remove a rede isolada
+```
+Tem outros comandos, entretanto estes comandos já são suficientes para testar. 
+
+Quando for rodar o container, basta colocar ele em uma rede criada. 
+
+```
+docker run --net=rede-isolada -it ubuntu # cria um container que roda em uma rede isolada
+```
+
+Isso são as funcionalidades básicas para isolamento de rede, entretanto para utilizar em um ambiente de produção precisamos conectar diversos hosts.
+
+Não mostraremos como configurar uma rede multi host, isso fica para a próxima.
+
+Para a rede funcionar, é não ter que configurar um bridge no sistema contectando diversos hosts, podemos usar uma rede sobreposta (overlay), uma rede overlay é uma rede encapsulada em outra rede, de forma que os containeres, possam se comunicar.
+
+existem diversos produtos que permitem efetuar a comunicação entre os containeres, como: 
+Flannel
+Weave
+Swarm
+
+Uma rede sobreposta pode adicionar um overide inaceitável quando performance é a prioridade.
+
+Vamos ao teste:
+
+Temos 2 servidores linux com uma rede gigabit entre eles, e com o docker instalado, usamos a ferramenta iperf que analisa o trafego da rede, e obtive os seguintes resultados:
+
+Teste 1, comunicação nativa, host to host:
+```
+172.19.100.121 - rodando iperf -c 172.19.100.121
+172.19.100.122 - rodando iperf -s 
+```
+resultado:
+```
+------------------------------------------------------------
+Client connecting to 172.19.100.122, TCP port 5001
+TCP window size: 85.0 KByte (default)
+------------------------------------------------------------
+[  3] local 172.19.100.121 port 49879 connected with 172.19.100.122 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.0 sec  2.48 GBytes  2.13 Gbits/sec
+```
+
+o resultado foi muito bom para uma conexão host to host, 2.13 gbits/sec.
+
+Teste 2, usando uma rede sobreposta weave container a container em hosts diferentes:
+```
+10.32.0.1 - iperf -s
+10.40.0.0 - iperf -c 10.32.0.1
+```
+
+```
+Client connecting to b1, TCP port 5001
+TCP window size: 45.0 KByte (default)
+------------------------------------------------------------
+[  3] local 10.40.0.0 port 60385 connected with 10.32.0.1 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.0 sec   581 MBytes   487 Mbits/sec
+```
+
+O resultado foi muito ruim, 487 Mbits/sec. 
+Para um ambiente de produção ter uma rede gigabit não valeria de nada se usar weave.
+
+Entretanto achei um projeto excelente, chamado Calico, ele não utiliza uma rede sobreposta, mas efetua uma comunicação entre docker multihost com containeres.
+
+Teste3, usando uma rede Calico:
+
+```
+10.0.0.6 - iperf -s
+10.0.0.7 - iperf -c 10.0.0.6
+```
+
+```
+Client connecting to 10.0.0.6, TCP port 5001
+TCP window size: 85.0 KByte (default)
+------------------------------------------------------------
+[  3] local 10.0.0.7 port 57583 connected with 10.0.0.6 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.0 sec  2.33 GBytes  2.00 Gbits/sec
+```
+
+O teste foi excelente, o resultado, foi que obtivemos um resultado, tão bom quanto uma rede gigabit nativa.
+
+Resultado, use calico quando precisa ligar containeres multi-host.
