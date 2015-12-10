@@ -1,4 +1,6 @@
 = docker network multihost
+:published_at: 2015-11-21
+:hp-tags: Docker
 
 Docker é uma ferramenta sensacional, entretanto se usamos apenas em um computador, ele não é muito prático, portanto para uso em um ambiente empresarial, é necessário conectar diversos docker hosts com uma rede que permita a comunicação entre os containeres dispostos em hosts diferentes.
 
