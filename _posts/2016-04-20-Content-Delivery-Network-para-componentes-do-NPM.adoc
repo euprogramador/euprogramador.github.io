@@ -1,6 +1,6 @@
 = Content Delivery Network para componentes do NPM
 :published_at: 2016-04-20
-:hp-tags: SSL, Certificados Digitais, Segurança
+:hp-tags: NPM, Desenvolvimento, Node
 
 Vez por outra precidamos acessar uma dependência que está no npm, para testes no jsfiddle ou plunker, então como fazer? aproveitei um projeto https://github.com/zeke/npm-cdn que disponibilizava um CDN acessando o registry do NPM, ajustei para trabalhar no docker, o resultado você encontra aqui: https://github.com/euprogramador/npm-cdn, a imagem está publicada no docker hub, https://hub.docker.com/r/euprogramador/npm-cdn/
 
