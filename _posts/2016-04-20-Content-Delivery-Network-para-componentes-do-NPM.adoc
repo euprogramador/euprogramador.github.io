@@ -1,0 +1,18 @@
+= Content Delivery Network para componentes do NPM
+:published_at: 2016-04-20
+:hp-tags: SSL, Certificados Digitais, Segurança
+
+Vez por outra precidamos acessar uma dependência que está no npm, para testes no jsfiddle ou plunker, então como fazer? aproveitei um projeto https://github.com/zeke/npm-cdn que disponibilizava um CDN acessando o registry do NPM, ajustei para trabalhar no docker, o resultado você encontra aqui: https://github.com/euprogramador/npm-cdn, a imagem está publicada no docker hub, https://hub.docker.com/r/euprogramador/npm-cdn/
+
+para rodar o container:
+
+docker run -v /cdn-cache-folder:/cdn -p 8080:8080 euprogramador/npm-cdn
+
+é possível também fazer com que a leitura corra em um npm privado, passando o host:
+
+
+docker run -v /cdn-cache-folder:/cdn -p 8080:8080 -e NPM_HOST=http://sinopia.myserver.local/ euprogramador/npm-cdn
+
+Para fazer a leitura dos pacotes agora basta acessar o browser em localhost:8080/angular e você tem um cdn local do npm.
+
+
